@@ -1,0 +1,12 @@
+[protocol]
+name = "asteria"
+scope = "open-tx3"
+version = "0.1.0"
+description = "On-chain competitive bot game on Cardano by TxPipe — ships, fuel, pellets, and the central Asteria prize"
+main = "main.tx3"
+readme = "README.md"
+logo = "logo.png"
+repository = "https://github.com/open-tx3/txpipe-protocols"
+
+[ledger]
+family = "cardano"

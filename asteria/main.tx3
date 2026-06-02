@@ -73,6 +73,18 @@ type FuelRedeemer {
   BurnFuel,
 }
 
+fn spacetime_token(name: Bytes, qty: Int) -> AnyAsset {
+    AnyAsset(0x0291ae7aebaf064b785542093c2b13169effb34462301e68d4b44f43, name, qty)
+}
+
+fn burn_fuel(qty: Int) -> AnyAsset {
+    Fuel(qty) - Fuel(qty) - Fuel(qty)
+}
+
+fn burn_spacetime_token(name: Bytes) -> AnyAsset {
+    spacetime_token(name, 1) - spacetime_token(name, 1) - spacetime_token(name, 1)
+}
+
 tx create_ship(
     p_pos_x: Int, // Ship Position X
     p_pos_y: Int, // Ship Position Y
@@ -84,7 +96,6 @@ tx create_ship(
     locals {
         initial_fuel: 5, // Should be taken from spaceTime datum
         ship_mint_lovelace_fee: 1000000, // Should be taken from asteria script datum
-        spacetime_policy_hash: 0x0291ae7aebaf064b785542093c2b13169effb34462301e68d4b44f43,
         spacetime_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#1,
         asteria_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#0,
         pellet_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#2,
@@ -119,7 +130,7 @@ tx create_ship(
     }
     
     mint {
-        amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + AnyAsset(spacetime_policy_hash, ship_name, 1),
+        amount: spacetime_token(pilot_name, 1) + spacetime_token(ship_name, 1),
         redeemer: ShipyardRedeemer::MintShip {},
     }
 
@@ -130,7 +141,7 @@ tx create_ship(
 
     output pilot_token {
         to: Player,
-        amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + min_utxo(pilot_token),
+        amount: spacetime_token(pilot_name, 1) + min_utxo(pilot_token),
     }
 
     output updated_asteria {
@@ -144,7 +155,7 @@ tx create_ship(
 
     output new_ship {
         to: SpacetimePolicy,
-        amount: AnyAsset(spacetime_policy_hash, ship_name, 1) + Fuel(initial_fuel) + min_utxo(new_ship),
+        amount: spacetime_token(ship_name, 1) + Fuel(initial_fuel) + min_utxo(new_ship),
         datum: ShipDatum {
             pos_x: p_pos_x,
             pos_y: p_pos_y,
@@ -176,7 +187,6 @@ tx move_ship(
     last_move_timestamp: Int,
 ) {
     locals {
-        spacetime_policy_hash: 0x0291ae7aebaf064b785542093c2b13169effb34462301e68d4b44f43,
         spacetime_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#1,
         pellet_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#2,
     }
@@ -202,7 +212,7 @@ tx move_ship(
     input ship {
         from: SpacetimePolicy,
         datum_is: ShipDatum,
-        min_amount: AnyAsset(spacetime_policy_hash, ship_name, 1),
+        min_amount: spacetime_token(ship_name, 1),
         redeemer: ShipRedeemer::MoveShip { 
             delta_x: p_delta_x,
             delta_y: p_delta_y,
@@ -211,11 +221,11 @@ tx move_ship(
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: spacetime_token(pilot_name, 1) + fees + min_utxo(pilot_change),
     }
 
     mint {
-        amount: Fuel(required_fuel) - Fuel(required_fuel) - Fuel(required_fuel),
+        amount: burn_fuel(required_fuel),
         redeemer: FuelRedeemer::BurnFuel {},
     }
 
@@ -245,7 +255,6 @@ tx gather_fuel(
     since_slot: Int,
 ) {
     locals {
-        spacetime_policy_hash: 0x0291ae7aebaf064b785542093c2b13169effb34462301e68d4b44f43,
         spacetime_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#1,
         pellet_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#2,
     }
@@ -272,7 +281,7 @@ tx gather_fuel(
     input ship {
         from: SpacetimePolicy,
         datum_is: ShipDatum,
-        min_amount: AnyAsset(spacetime_policy_hash, ship_name, 1),
+        min_amount: spacetime_token(ship_name, 1),
         redeemer: ShipRedeemer::GatherFuel { 
             amount: p_amount,
         },
@@ -280,7 +289,7 @@ tx gather_fuel(
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: spacetime_token(pilot_name, 1) + fees + min_utxo(pilot_change),
     }
 
     output {
@@ -318,7 +327,6 @@ tx gather_token(
     since_slot: Int,
 ) {
     locals {
-        spacetime_policy_hash: 0x0291ae7aebaf064b785542093c2b13169effb34462301e68d4b44f43,
         spacetime_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#1,
         pellet_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#2,
     }
@@ -345,7 +353,7 @@ tx gather_token(
     input ship {
         from: SpacetimePolicy,
         datum_is: ShipDatum,
-        min_amount: AnyAsset(spacetime_policy_hash, ship_name, 1),
+        min_amount: spacetime_token(ship_name, 1),
         redeemer: ShipRedeemer::GatherFuel { 
             amount: fuel_amount,
         },
@@ -353,7 +361,7 @@ tx gather_token(
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: spacetime_token(pilot_name, 1) + fees + min_utxo(pilot_change),
     }
 
     output {
@@ -388,7 +396,6 @@ tx mine_asteria(
     since_slot: Int,
 ) {
     locals {
-        spacetime_policy_hash: 0x0291ae7aebaf064b785542093c2b13169effb34462301e68d4b44f43,
         spacetime_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#1,
         asteria_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#0,
         pellet_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#2,
@@ -420,22 +427,22 @@ tx mine_asteria(
     input ship {
         from: SpacetimePolicy,
         datum_is: ShipDatum,
-        min_amount: AnyAsset(spacetime_policy_hash, ship_name, 1),
+        min_amount: spacetime_token(ship_name, 1),
         redeemer: ShipRedeemer::MineAsteria {},
     }
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: spacetime_token(pilot_name, 1) + fees + min_utxo(pilot_change),
     }
 
     mint {
-        amount: Fuel(ship_fuel) - Fuel(ship_fuel) - Fuel(ship_fuel),
+        amount: burn_fuel(ship_fuel),
         redeemer: FuelRedeemer::BurnFuel {},
     }
 
     mint {
-        amount: AnyAsset(spacetime_policy_hash, ship_name, 1) - AnyAsset(spacetime_policy_hash, ship_name, 1) - AnyAsset(spacetime_policy_hash, ship_name, 1),
+        amount: burn_spacetime_token(ship_name),
         redeemer: ShipyardRedeemer::BurnShip {},
     }
 
@@ -447,7 +454,7 @@ tx mine_asteria(
 
     output {
         to: SpacetimePolicy,
-        amount: ship - AnyAsset(spacetime_policy_hash, ship_name, 1) - Fuel(ship_fuel),
+        amount: ship - spacetime_token(ship_name, 1) - Fuel(ship_fuel),
         datum: ShipDatum {...ship},
     }
 
@@ -470,7 +477,6 @@ tx quit_game(
     since_slot: Int,
 ) {
     locals {
-        spacetime_policy_hash: 0x0291ae7aebaf064b785542093c2b13169effb34462301e68d4b44f43,
         spacetime_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#1,
         pellet_policy_ref: 0x3d308c0f3deb1eff764cbb765452c53d30704748681d7acd61c7775aeb8a8e46#2,
     }
@@ -490,28 +496,28 @@ tx quit_game(
     input ship {
         from: SpacetimePolicy,
         datum_is: ShipDatum,
-        min_amount: AnyAsset(spacetime_policy_hash, ship_name, 1),
+        min_amount: spacetime_token(ship_name, 1),
         redeemer: ShipRedeemer::Quit {},
     }
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: spacetime_token(pilot_name, 1) + fees + min_utxo(pilot_change),
     }
 
     mint {
-        amount: Fuel(ship_fuel) - Fuel(ship_fuel) - Fuel(ship_fuel),
+        amount: burn_fuel(ship_fuel),
         redeemer: FuelRedeemer::BurnFuel {},
     }
 
     mint {
-        amount: AnyAsset(spacetime_policy_hash, ship_name, 1) - AnyAsset(spacetime_policy_hash, ship_name, 1) - AnyAsset(spacetime_policy_hash, ship_name, 1),
+        amount: burn_spacetime_token(ship_name),
         redeemer: ShipyardRedeemer::BurnShip {},
     }
 
     output {
         to: SpacetimePolicy,
-        amount: ship - AnyAsset(spacetime_policy_hash, ship_name, 1) - Fuel(ship_fuel),
+        amount: ship - spacetime_token(ship_name, 1) - Fuel(ship_fuel),
         datum: ShipDatum {...ship},
     }
 

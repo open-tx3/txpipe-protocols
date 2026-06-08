@@ -106,9 +106,9 @@ tx create_ship(
         ref: pellet_policy_ref,
     }
 
-    input* gas {
+    input* payment {
         from: Player,
-        min_amount: fees + Ada(ship_mint_lovelace_fee) + min_utxo(pilot_token) + min_utxo(new_ship) + min_utxo(gas_change),
+        min_amount: fees + Ada(ship_mint_lovelace_fee) + min_utxo(pilot_token) + min_utxo(new_ship) + min_utxo(change),
     }
 
     input asteria {
@@ -154,9 +154,9 @@ tx create_ship(
         },
     }
 
-    output gas_change {
+    output change {
         to: Player,
-        amount: gas - fees - Ada(ship_mint_lovelace_fee) - min_utxo(pilot_token) - min_utxo(new_ship),
+        amount: payment - fees - Ada(ship_mint_lovelace_fee) - min_utxo(pilot_token) - min_utxo(new_ship),
     }
 
     collateral {
@@ -211,7 +211,7 @@ tx move_ship(
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(change),
     }
 
     mint {
@@ -219,7 +219,7 @@ tx move_ship(
         redeemer: FuelRedeemer::BurnFuel {},
     }
 
-    output {
+    output updated_ship {
         to: SpacetimePolicy,
         amount: ship - Fuel(required_fuel),
         datum: ShipDatum {
@@ -230,7 +230,7 @@ tx move_ship(
         },
     }
 
-    output pilot_change {
+    output change {
         to: Player,
         amount: pilot - fees,
     }
@@ -280,22 +280,22 @@ tx gather_fuel(
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(change),
     }
 
-    output {
+    output updated_pellet {
         to: PelletPolicy,
         amount: pellet - Fuel(p_amount),
         datum: PelletDatum {...pellet},
     }
 
-    output {
+    output updated_ship {
         to: SpacetimePolicy,
         amount: ship + Fuel(p_amount),
         datum: ShipDatum {...ship},
     }
 
-    output pilot_change {
+    output change {
         to: Player,
         amount: pilot - fees,
     }
@@ -353,22 +353,22 @@ tx gather_token(
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(change),
     }
 
-    output {
+    output updated_pellet {
         to: PelletPolicy,
         amount: pellet - Fuel(fuel_amount) - AnyAsset(token_policy_hash, token_name, token_amount),
         datum: PelletDatum {...pellet},
     }
 
-    output {
+    output updated_ship {
         to: SpacetimePolicy,
         amount: ship + Fuel(fuel_amount),
         datum: ShipDatum {...ship},
     }
 
-    output pilot_change {
+    output change {
         to: Player,
         amount: pilot - fees + AnyAsset(token_policy_hash, token_name, token_amount),
     }
@@ -426,7 +426,7 @@ tx mine_asteria(
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(change),
     }
 
     mint {
@@ -439,19 +439,19 @@ tx mine_asteria(
         redeemer: ShipyardRedeemer::BurnShip {},
     }
 
-    output {
+    output updated_asteria {
         to: AsteriaPolicy,
         amount: asteria - Ada(mine_amount),
         datum: AsteriaDatum {...asteria},
     }
 
-    output {
+    output updated_ship {
         to: SpacetimePolicy,
         amount: ship - AnyAsset(spacetime_policy_hash, ship_name, 1) - Fuel(ship_fuel),
         datum: ShipDatum {...ship},
     }
 
-    output pilot_change {
+    output change {
         to: Player,
         amount: pilot - fees + Ada(mine_amount),
     }
@@ -496,7 +496,7 @@ tx quit_game(
 
     input* pilot {
         from: Player,
-        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(pilot_change),
+        min_amount: AnyAsset(spacetime_policy_hash, pilot_name, 1) + fees + min_utxo(change),
     }
 
     mint {
@@ -509,13 +509,13 @@ tx quit_game(
         redeemer: ShipyardRedeemer::BurnShip {},
     }
 
-    output {
+    output updated_ship {
         to: SpacetimePolicy,
         amount: ship - AnyAsset(spacetime_policy_hash, ship_name, 1) - Fuel(ship_fuel),
         datum: ShipDatum {...ship},
     }
 
-    output pilot_change {
+    output change {
         to: Player,
         amount: pilot - fees,
     }
